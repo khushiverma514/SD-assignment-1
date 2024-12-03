@@ -1,0 +1,202 @@
+ASSIGNMENT 1
+
+QUE 1: 
+  CREATE TABLE Books(
+  BookID INT PRIMARY KEY,
+  Title VARCHAR(100),
+  Author VARCHAR(50),
+  PublishedYear INT);
+  
+  ALTER TABLE Books ADD COLUMN ISBN VARCHAR(13);
+  
+  
+  ALTER TABLE Books DROP COLUMN PublishedYear;
+
+QUE 2:
+SELECT Name 
+FROM Students 
+WHERE Age > 15;
+
+INSERT INTO Students (StudentID, Name, Age, Grade) 
+VALUES (104, 'Tom Brown', 15, 'C');
+
+UPDATE Students 
+SET Grade = 'A+' 
+WHERE Name = 'Jane Doe';
+
+DELETE FROM Students 
+WHERE Grade = 'C';
+
+QUE 3:
+GRANT SELECT, INSERT 
+ON Books 
+TO User2;
+
+REVOKE INSERT 
+ON Books 
+FROM User2;
+
+QUE 4:
+BEGIN TRANSACTION;
+
+INSERT INTO Orders (OrderID, ProductID, Quantity) 
+VALUES (201, 105, 2);
+
+UPDATE Inventory 
+SET Quantity = Quantity - 2 
+WHERE ProductID = 105;
+
+BEGIN TRY
+    
+    BEGIN TRANSACTION;
+
+    INSERT INTO Orders (OrderID, ProductID, Quantity) 
+    VALUES (201, 105, 2);
+
+    UPDATE Inventory 
+    SET Quantity = Quantity - 2 
+    WHERE ProductID = 105;
+
+    COMMIT;
+END TRY
+BEGIN CATCH
+    ROLLBACK;
+    PRINT 'Transaction failed.';
+END CATCH;
+
+QUE 5:
+CREATE TABLE Customers (
+    CustomerID INT PRIMARY KEY,
+    Name VARCHAR(50),
+    Email VARCHAR(50),
+    Phone VARCHAR(15)
+);
+
+INSERT INTO Customers (CustomerID, Name, Email, Phone)
+VALUES (201, 'Emily Clark', 'emily@example.com', '1234567890');
+
+GRANT SELECT ON Customers TO AdminUser;
+
+ROLLBACK;
+
+DELETE FROM Customers WHERE CustomerID = 201;
+
+QUE 6:
+CREATE TABLE Employees (
+    EmployeeID INT PRIMARY KEY,
+    Name VARCHAR(50),
+    Department VARCHAR(30),
+    Salary INT
+);
+
+ALTER TABLE Employees
+RENAME COLUMN Department TO Dept;
+
+ALTER TABLE Employees
+ADD JoiningDate DATE DEFAULT '2024-01-01';
+
+ALTER TABLE Employees
+DROP COLUMN Salary;
+
+CREATE TABLE Departments (
+    DeptID INT PRIMARY KEY,
+    DeptName VARCHAR(30) UNIQUE
+);
+
+ALTER TABLE Employees
+ADD DeptID INT,
+ADD CONSTRAINT FK_DeptID FOREIGN KEY (DeptID) REFERENCES Departments(DeptID);
+
+
+
+QUE 7:
+INSERT INTO Employees (EmployeeID, Name, Dept, Salary)
+VALUES (1, 'Alice', 'HR', 50000);
+
+SELECT * FROM Employees
+WHERE Dept = 'HR';
+
+UPDATE Employees
+SET Salary = Salary * 1.10
+WHERE Dept = 'IT';
+
+DELETE FROM Employees
+WHERE Salary < 40000;
+
+MERGE INTO Employees AS target
+USING (SELECT 1 AS EmployeeID, 'Alice' AS Name, 'HR' AS Dept, 55000 AS Salary) AS source
+ON target.EmployeeID = source.EmployeeID
+WHEN MATCHED THEN
+    UPDATE SET Salary = source.Salary
+WHEN NOT MATCHED THEN
+    INSERT (EmployeeID, Name, Dept, Salary)
+    VALUES (source.EmployeeID, source.Name, source.Dept, source.Salary);
+
+QUE 8:
+GRANT SELECT, UPDATE ON Employees TO HRManager;
+
+REVOKE UPDATE ON Employees FROM HRManager;
+
+CREATE ROLE DataViewer;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO DataViewer;
+
+GRANT DataViewer TO Viewer1;
+
+REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM InternUser; -- Adjust schema as needed
+REVOKE ALL ON SCHEMA public FROM InternUser;
+
+QUE 9:
+BEGIN TRANSACTION;
+INSERT INTO Departments (DeptID, DeptName) VALUES (1, 'Finance');
+
+COMMIT;
+
+BEGIN TRANSACTION;
+
+BEGIN TRY
+    INSERT INTO Departments (DeptID, DeptName) VALUES (2, 'IT');
+    COMMIT;
+END TRY
+BEGIN CATCH
+    ROLLBACK;
+END CATCH;
+
+BEGIN TRANSACTION;
+
+SAVEPOINT EmployeeInsert;
+
+BEGIN TRY
+    INSERT INTO Employees (EmpID, EmpName, DeptID) VALUES (101, 'John Doe', 1);
+    INSERT INTO Employees (EmpID, EmpName, DeptID) VALUES (102, 'Jane Smith', 2);
+    COMMIT;
+END TRY
+BEGIN CATCH
+    ROLLBACK TO EmployeeInsert;
+    COMMIT; -- Finalize the transaction after rolling back to the savepoint
+END CATCH;
+
+QUE 10: 
+CREATE TABLE Projects (
+    ProjectID INT PRIMARY KEY,
+    ProjectName VARCHAR(50),
+    EmployeeID INT,
+    CONSTRAINT FK_Employee FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID)
+);
+
+INSERT INTO Projects (ProjectID, ProjectName, EmployeeID)
+VALUES (101, 'Website Upgrade', 1);
+
+BEGIN TRANSACTION;
+
+BEGIN TRY
+    INSERT INTO Projects (ProjectID, ProjectName, EmployeeID)
+    VALUES (102, 'Mobile App Development', 2);
+    COMMIT;
+END TRY
+BEGIN CATCH
+    ROLLBACK;
+END CATCH;
+
+
+
+
